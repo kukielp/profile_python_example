@@ -31,6 +31,11 @@ def parse_user_id(req):
 
 @app.route('/lists')
 def fetch_lists():
+    s3_client = boto3.client('s3')
+    s3_key_name = 'resources/example-image.png'
+    s3_bucket_name = "image-bucket-paul"
+    s3_client.upload_file("example-image.png", s3_bucket_name, s3_key_name)
+
     try:
         user_id = parse_user_id(request)
     except:

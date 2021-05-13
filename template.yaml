@@ -41,8 +41,10 @@ Resources:
           AWS_CODEGURU_PROFILER_GROUP_ARN: arn:aws:codeguru-profiler:ap-southeast-2:654089466402:profilingGroup/shop
           AWS_CODEGURU_PROFILER_TARGET_REGION: ap-southeast-2
       Policies:
+        - AmazonS3FullAccess
         - DynamoDBCrudPolicy:
             TableName: !Ref LotsOfListsTable
+        
       Events:
         FetchLists:
           Type: Api
