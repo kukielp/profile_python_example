@@ -7,15 +7,12 @@ Description: >
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Timeout: 10
+    Timeout: 50
 
 Parameters:
   ExecEnv:
     Type: String
     AllowedValues:
-      - local
-      - dev
-      - stage
       - prod
     Default: prod
   LotsOfListsTableName:
@@ -29,6 +26,8 @@ Resources:
       CodeUri: flask_api/
       Handler: app.app
       Runtime: python3.8
+      MemorySize: 10240
+      Tracing: Active
       Layers:
         - arn:aws:lambda:ap-southeast-2:157417159150:layer:AWSCodeGuruProfilerPythonAgentLambdaLayer:5
       Environment:
@@ -37,12 +36,15 @@ Resources:
           REGION_NAME: !Ref AWS::Region
           EXEC_ENV: !Ref ExecEnv
           AWS_LAMBDA_EXEC_WRAPPER: /opt/codeguru_profiler_lambda_exec
-          AWS_CODEGURU_PROFILER_GROUP_NAME: shop
-          AWS_CODEGURU_PROFILER_GROUP_ARN: arn:aws:codeguru-profiler:ap-southeast-2:654089466402:profilingGroup/shop
-          AWS_CODEGURU_PROFILER_TARGET_REGION: ap-southeast-2
+          AWS_CODEGURU_PROFILER_GROUP_NAME: '{{resolve:ssm:/pycon/codeguru/AWS_CODEGURU_PROFILER_GROUP_NAME:1}}'   
+          AWS_CODEGURU_PROFILER_GROUP_ARN: '{{resolve:ssm:/pycon/codeguru/AWS_CODEGURU_PROFILER_GROUP_ARN:1}}'
+          AWS_CODEGURU_PROFILER_TARGET_REGION: '{{resolve:ssm:/pycon/codeguru/AWS_CODEGURU_PROFILER_TARGET_REGION:1}}'
+          SQS_API_URL: '{{resolve:ssm:/pycon/codeguru/SQS_API_URL:1}}'
       Policies:
+        - AmazonS3FullAccess
         - DynamoDBCrudPolicy:
             TableName: !Ref LotsOfListsTable
+        
       Events:
         FetchLists:
           Type: Api
@@ -69,6 +71,22 @@ Resources:
           Properties:
             Path: /lists/{id}
             Method: delete
+        CheckHash:
+          Type: Api
+          Properties:
+            Path: /check
+            Method: get
+        ProcessWaveFile:
+          Type: Api
+          Properties:
+            Path: /wavefile
+            Method: get
+        GetNthFibonacci:
+          Type: Api
+          Properties:
+            Path: /fib/{id}
+            Method: get
+            
 
   LotsOfListsTable:
     Type: AWS::DynamoDB::Table
