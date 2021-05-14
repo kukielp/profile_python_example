@@ -2,3 +2,5 @@ requests
 flask-lambda
 boto3
 codeguru_profiler_agent
+flask
+Pillow
